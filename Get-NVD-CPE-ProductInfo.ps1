@@ -47,15 +47,15 @@ if (test-path $nvd_cpe_filepath) {
 }
 
 # download most recent zip CVE list
-Write-host "$(get-date) - Downloading $url."
+Write-host "$(get-date) - Downloading $($nvd_cpe_url)."
 $download_path = Get-Web-Download -url $nvd_cpe_url
 
 # extract the zipped CVE list
-Write-host "$(get-date) - Expanding $download_path."
+Write-host "$(get-date) - Expanding $($download_path)."
 Expand-ZIPFile -file $download_path -destination $env:TEMP
 
 # read entries into an array
-Write-host "$(get-date) - Reading $nvd_cpe_filepath into entries array"
+Write-host "$(get-date) - Reading $($nvd_cpe_filepath) into array"
 
 # load it into an XML object:
 $xml = New-Object -TypeName XML
