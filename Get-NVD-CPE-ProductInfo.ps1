@@ -54,17 +54,16 @@ $download_path = Get-Web-Download -url $nvd_cpe_url
 Write-host "$(get-date) - Expanding $($download_path)."
 Expand-ZIPFile -file $download_path -destination $env:TEMP
 
-# read entries into an array
-Write-host "$(get-date) - Reading $($nvd_cpe_filepath) into array"
-
-# load it into an XML object:
+# read entries into an xml
+Write-host "$(get-date) - Reading $($nvd_cpe_filepath) into xml object"
 $xml = New-Object -TypeName XML
 $xml.Load($nvd_cpe_filepath)
 
+# convert xml entries of interest into csv
+Write-host "$(get-date) - Convert xml entries of interest to CSV"
 $record_count = 0
 $page_size = 0
 $page_count = 0
-
 $records = @()
 
 # loop through each cpe-item and append properties of interst to object
@@ -94,11 +93,11 @@ foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
     # append records array with hash table members
     $Records += New-Object -TypeName PSObject -Property $Record
 
-    # now, if we are at 1000 items, lets page out to CSV files
-    if ($page_size -eq 50000) { 
+    # now, if we are at N items, lets page out to CSV files
+    if ($page_size -eq 10000) { 
             $page_count++
             $page_size = 0
-            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 50K processed records. `[Page $($page_count)`]."
+            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 10K processed records. `[Page $($page_count)`]."
             $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
             # reset the records object
             $records = @() 
