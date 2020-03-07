@@ -12,7 +12,6 @@ function Get-Web-Download($url)
     }
 
     # download the file
-    write-host "Downloading $url" 
     $client = new-object System.Net.WebClient 
     $client.DownloadFile($url, $download_path) 
 
@@ -48,6 +47,7 @@ if (test-path $nvd_cpe_filepath) {
 }
 
 # download most recent zip CVE list
+Write-host "$(get-date) - Downloading $url."
 $download_path = Get-Web-Download -url $nvd_cpe_url
 
 # extract the zipped CVE list
