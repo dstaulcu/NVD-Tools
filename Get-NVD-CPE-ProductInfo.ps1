@@ -67,26 +67,34 @@ $page_count = 0
 $records = @()
 
 # loop through each cpe-item and append properties of interst to object
-foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
+foreach ($item in ($xml.'cpe-list'.'cpe-item')[0..2000]) {   # remove slicing when not testing
 
     # increment counter of items observed
     $record_count++
     $page_size++
 
     # extract vendor, product, and version from name field (better, but not best, for humans)
-    $item.name -match "cpe\:/a:([^\:]+):([^\:]+):([^\:]+)" | Out-Null
+    $item.'cpe23-item'.name -match "cpe\:2\.3\:a:([^\:]+):([^\:]+):([^\:]+)"  | Out-Null
     if ($matches) { 
         $vendor = $matches[1]
         $product = $matches[2]
         $version = $matches[3]    
     } else { $vendor = "extract_failed" ; $product = "extract_failed" ; $version = "extract_failed" }
 
+
+    $references = @($item.references.ChildNodes)
+    $changelog_href = ($references | where-object{$_.'#text' -eq "Change Log"}).href | Select-Object -First 1  
+    $version_href = ($references | where-object{$_.'#text' -eq "Version"}).href | Select-Object -First 1
+
     # tee up a hash table of properties of interest
     $Record = @{
         name =  $item.name
+        cpe23item_name = $item.'cpe23-item'.name
         vendor = $vendor
         product = $product
-        version = $version     
+        version = $version
+        changelog_url = $changelog_href
+        version_url = $version_href               
         title = ($item.title | where-object{$_.lang -eq 'en-US'}).'#text'
     }
 
@@ -109,17 +117,26 @@ write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with r
 $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
 
 # give back that memory
-$xml | Out-Null
+#$xml | Out-Null
 
 # write summary of time to execute
 $jobTotalSeconds = (New-TimeSpan -Start $jobstart).TotalSeconds
 
 write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds converting $($record_count) records!"
 
+
 <#
-# prepare results for interaction
+###################################
+# INTERACTIVE STUFF FOR DISCOVERY #
+###################################
+
+# read stored records into powershell PSCustomObject
 $Records = Import-Csv -Path $nvd_cpe_filepath_csv
-$records | Select-Object -Property name, title, vendor, product, version | out-GridView    
-$records | ?{$_.name -match "[^~]~$"} | Select-Object -Property name, title, vendor, product, version | out-GridView    
-$records | Select-Object -Property name, title, vendor, product, version | Sort-Object -Property name | Out-GridView
+
+# show records 
+$records | Select-Object -Property name, cpe23item_name, title, vendor, product, version, changelog_url, version_url
+
+# show records in gridview
+$records | Select-Object -Property name, cpe23item_name, title, vendor, product, version, changelog_url, version_url | out-GridView    
+
 #>
