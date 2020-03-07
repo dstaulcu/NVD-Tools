@@ -61,15 +61,18 @@ Write-host "$(get-date) - Reading $($nvd_cpe_filepath) into array"
 $xml = New-Object -TypeName XML
 $xml.Load($nvd_cpe_filepath)
 
+$record_count = 0
+$page_size = 0
+$page_count = 0
+
 $records = @()
-$counter = 0
-$pages = 0
 
 # loop through each cpe-item and append properties of interst to object
 foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
 
     # increment counter of items observed
-    $counter++
+    $record_count++
+    $page_size++
 
     # extract vendor, product, and version from name field (better, but not best, for humans)
     $item.name -match "cpe\:/a:([^\:]+):([^\:]+):([^\:]+)" | Out-Null
@@ -92,9 +95,9 @@ foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
     $Records += New-Object -TypeName PSObject -Property $Record
 
     # now, if we are at 1000 items, lets page out to CSV files
-    if ($counter -eq 10000) { 
-            $pages++
-            $counter = 0
+    if ($page_size -eq 10000) { 
+            $page_count++
+            $page_size = 0
             write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 10K processed records. `[Page $($pages)`]."
             $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
             # reset the records object
@@ -109,19 +112,15 @@ $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
 # give back that memory
 $xml | Out-Null
 
-# prepare results for interaction
-$Records = Import-Csv -Path $nvd_cpe_filepath_csv
-
 # write summary of time to execute
 $jobTotalSeconds = (New-TimeSpan -Start $jobstart).TotalSeconds
 
-write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds producting $($records.count) records!"
-
-$Records[0]
+write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds producting $($record_count) records!"
 
 <#
-$records | Select-Object -Property name, title, vendor, product, version | out-GridView    
+# prepare results for interaction
 $Records = Import-Csv -Path $nvd_cpe_filepath_csv
+$records | Select-Object -Property name, title, vendor, product, version | out-GridView    
 $records | ?{$_.name -match "[^~]~$"} | Select-Object -Property name, title, vendor, product, version | out-GridView    
 $records | Select-Object -Property name, title, vendor, product, version | Sort-Object -Property name | Out-GridView
 #>
