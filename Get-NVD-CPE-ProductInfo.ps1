@@ -98,7 +98,7 @@ foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
     if ($page_size -eq 10000) { 
             $page_count++
             $page_size = 0
-            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 10K processed records. `[Page $($pages)`]."
+            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 10K processed records. `[Page $($page_count)`]."
             $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
             # reset the records object
             $records = @() 
