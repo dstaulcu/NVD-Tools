@@ -115,7 +115,7 @@ $xml | Out-Null
 # write summary of time to execute
 $jobTotalSeconds = (New-TimeSpan -Start $jobstart).TotalSeconds
 
-write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds producting $($record_count) records!"
+write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds converting $($record_count) records!"
 
 <#
 # prepare results for interaction
