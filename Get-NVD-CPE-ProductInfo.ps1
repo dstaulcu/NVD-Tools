@@ -51,11 +51,11 @@ if (test-path $nvd_cpe_filepath) {
 $download_path = Get-Web-Download -url $nvd_cpe_url
 
 # extract the zipped CVE list
-Write-host "Expanding $download_path."
+Write-host "$(get-date) - Expanding $download_path."
 Expand-ZIPFile -file $download_path -destination $env:TEMP
 
 # read entries into an array
-Write-host "Reading $nvd_cpe_filepath into entries array"
+Write-host "$(get-date) - Reading $nvd_cpe_filepath into entries array"
 
 # load it into an XML object:
 $xml = New-Object -TypeName XML
@@ -115,7 +115,9 @@ $Records = Import-Csv -Path $nvd_cpe_filepath_csv
 # write summary of time to execute
 $jobTotalSeconds = (New-TimeSpan -Start $jobstart).TotalSeconds
 
-write-host "Task completed in $($jobTotalSeconds) seconds producting $($records.count) records!"
+write-host "$(get-date) - Task completed in $($jobTotalSeconds) seconds producting $($records.count) records!"
+
+$Records[0]
 
 <#
 $records | Select-Object -Property name, title, vendor, product, version | out-GridView    
