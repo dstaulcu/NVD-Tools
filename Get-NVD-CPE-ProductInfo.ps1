@@ -95,10 +95,10 @@ foreach ($item in ($xml.'cpe-list'.'cpe-item')) {
     $Records += New-Object -TypeName PSObject -Property $Record
 
     # now, if we are at 1000 items, lets page out to CSV files
-    if ($page_size -eq 100000) { 
+    if ($page_size -eq 50000) { 
             $page_count++
             $page_size = 0
-            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 100K processed records. `[Page $($page_count)`]."
+            write-host "$(get-date) - Appending results file $($nvd_cpe_filepath_csv) with 50K processed records. `[Page $($page_count)`]."
             $records | Export-Csv -Path $nvd_cpe_filepath_csv -NoTypeInformation -Append
             # reset the records object
             $records = @() 
